@@ -1,0 +1,24 @@
+#!/bin/bash
+set -e
+set -u
+set -o pipefail
+
+################################################################################
+# Publish the image(s) to Docker Hub.
+################################################################################
+. ci/functions.sh
+
+# shellcheck disable=SC1091
+. ci/vars
+
+# shellcheck disable=SC2154
+docker login -u "${user}" -p "${pass}"
+run docker tag duoauthproxy jumanjiman/duoauthproxy:"${TAG}"
+run docker tag duoauthproxy jumanjiman/duoauthproxy:latest
+docker images | grep duoauthproxy
+run docker push jumanjiman/duoauthproxy:"${TAG}"
+run docker push jumanjiman/duoauthproxy:latest
+docker logout
+
+run curl -X POST 'https://hooks.microbadger.com/images/jumanjiman/duoauthproxy/a6qK4f-H4zzOMK1R2wA_Oovckew='
+echo
