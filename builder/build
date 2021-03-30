@@ -1,0 +1,37 @@
+#!/bin/bash
+set -e
+set -x
+set -o pipefail
+
+################################################################################
+# Build and install Duo Authproxy.
+#
+# https://duo.com/support/documentation/authproxy_reference#installation
+################################################################################
+
+finish() {
+  declare -ri RC=$?
+
+  if [ ${RC} -eq 0 ]; then
+    echo "$0" OK >&2
+  else
+    echo "$0" failed with exit code ${RC} >&2
+    exit ${RC}
+  fi
+}
+
+trap finish EXIT
+
+# Build and install authproxy.
+cd /root
+tar xzf duoauthproxy-*-src.tgz
+# Beginning with alpine 3.7, we need a trailing slash to avoid...
+#   + cd duoauthproxy-2.6.0-src duoauthproxy-2.6.0-src.tgz
+#   /root/build: line 28: cd: too many arguments
+cd duoauthproxy*/
+
+PYTHON="$(command -v python)"
+declare -rx PYTHON
+make
+cd duoauthproxy-build
+./install --install-dir=/opt/duoauthproxy --service-user=duo --log-group=duo --create-init-script=yes
